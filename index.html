@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construscanner - Monitoramento de Obras com IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: "📡";
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #ffd700;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 0.5rem;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #FFA500 0%, #ff8c00 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .cameras-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .camera-feed {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-feed video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .camera-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .alerts-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            background: #f5f5f5;
+        }
+
+        .alert-item.critical {
+            border-left-color: #f44336;
+        }
+
+        .alert-item.warning {
+            border-left-color: #FFA500;
+        }
+
+        .alert-item.info {
+            border-left-color: #2196F3;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            min-width: 30px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-time {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .map-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .machine-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .machine-marker:hover {
+            transform: scale(1.2);
+        }
+
+        .machine-marker.active {
+            background: #4CAF50;
+        }
+
+        .machine-marker.paused {
+            background: #FFA500;
+        }
+
+        .productivity-chart {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-label {
+            width: 100px;
+            font-weight: bold;
+        }
+
+        .chart-bar-bg {
+            flex: 1;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 1rem;
+        }
+
+        .chart-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.5rem;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-item::before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+            margin: auto;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .map-container {
+                height: 300px;
+            }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .real-time-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">Construscanner</div>
+        <div class="nav-links">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#cameras">Câmeras</a>
+            <a href="#alerts">Alertas</a>
+            <a href="#sobre">Sobre</a>
+        </div>
+    </nav>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🏗️ Monitoramento de Obras em Tempo Real</h1>
+            <p>Sistema inteligente de monitoramento de canteiros com IA</p>
+        </div>
+
+        <!-- DASHBOARD - MÉTRICAS PRINCIPAIS -->
+        <div class="dashboard" id="dashboard">
+            <div class="card">
+                <div class="card-title">📊 Produtividade</div>
+                <div class="card-content">
+                    <div>
+                        <div class="metric-value" id="productivity">72%</div>
+                        <div class="metric-label">Eficiência da obra</div>
+                        <div class="status-indicator status-active">ATIVO</div>
+                    </div>
+                    <div style="font-size: 3rem;">📈</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🚜 Máquinas Operando</div>
+                <div class="card-content">
+                    <div>
+                        <div class="metric-value" id="machines">8</div>
+                        <div class="metric-label">de 10 máquinas</div>
+                        <div class="status-indicator status-warning">2 PARADAS</div>
+                    </div>
+                    <div style="font-size: 3rem;">⚙️</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">👷 Trabalhadores Presentes</div>
+                <div class="card-content">
+                    <div>
+                        <div class="metric-value" id="workers">24</div>
+                        <div class="metric-label">no canteiro</div>
+                        <div class="status-indicator status-active">PRESENTE</div>
+                    </div>
+                    <div style="font-size: 3rem;">👥</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🚨 Alertas</div>
+                <div class="card-content">
+                    <div>
+                        <div class="metric-value" id="alerts-count">3</div>
+                        <div class="metric-label">situações de risco</div>
+                        <div class="status-indicator status-warning">ATENÇÃO</div>
+                    </div>
+                    <div style="font-size: 3rem;">⚠️</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🌡️ Ambiente</div>
+                <div class="card-content">
+                    <div>
+                        <div class="metric-value" id="temperature">28°C</div>
+                        <div class="metric-label">Condições normais</div>
+                        <div class="status-indicator status-active">OK</div>
+                    </div>
+                    <div style="font-size: 3rem;">☀️</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💾 Armazenamento</div>
+                <div class="card-content">
+                    <div>
+                        <div class="metric-value" id="storage">85%</div>
+                        <div class="metric-label">Capacidade usada</div>
+                        <div class="status-indicator status-active">NUVEM</div>
+                    </div>
+                    <div style="font-size: 3rem;">☁️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAPA DE LOCALIZAÇÃO -->
+        <div class="map-section">
+            <div class="section-title">🗺️ Localização de Máquinas</div>
+            <div class="map-container" id="map">
+                <div class="machine-marker active" style="top: 20%; left: 15%;" title="Escavadeira 1 - OPERANDO">E1</div>
+                <div class="machine-marker active" style="top: 40%; left: 35%;" title="Escavadeira 2 - OPERANDO">E2</div>
+                <div class="machine-marker paused" style="top: 60%; left: 55%;" title="Pá Carregadeira - PARADA">P1</div>
+                <div class="machine-marker active" style="top: 30%; left: 75%;" title="Rolo Compactador - OPERANDO">R1</div>
+                <div class="machine-marker active" style="top: 70%; left: 20%;" title="Caminhão 1 - OPERANDO">C1</div>
+            </div>
+
+            <div class="productivity-chart">
+                <div class="chart-bar">
+                    <div class="chart-label">Segunda</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" style="width: 72%;">72%</div>
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Terça</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" style="width: 78%;">78%</div>
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Quarta</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" style="width: 65%;">65%</div>
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Quinta</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" style="width: 82%;">82%</div>
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Sexta</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" style="width: 75%;">75%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CÂMERAS -->
+        <div class="cameras-section" id="cameras">
+            <div class="section-title">📷 Monitoramento por Câmeras <span class="real-time-badge">AO VIVO</span></div>
+            <div class="cameras-grid">
+                <div class="camera-feed">
+                    <div class="camera-placeholder">📹</div>
+                    <div class="camera-label">Câmera 1 - Entrada Principal</div>
+                </div>
+                <div class="camera-feed">
+                    <div class="camera-placeholder">📹</div>
+                    <div class="camera-label">Câmera 2 - Zona de Escavação</div>
+                </div>
+                <div class="camera-feed">
+                    <div class="camera-placeholder">📹</div>
+                    <div class="camera-label">Câmera 3 - Zona de Compactação</div>
+                </div>
+                <div class="camera-feed">
+                    <div class="camera-placeholder">📹</div>
+                    <div class="camera-label">Câmera 4 - Escritório Temporário</div>
+                </div>
+                <div class="camera-feed">
+                    <div class="camera-placeholder">📹</div>
+                    <div class="camera-label">Câmera 5 - Acesso Sul</div>
+                </div>
+                <div class="camera-feed">
+                    <div class="camera-placeholder">📹</div>
+                    <div class="camera-label">Câmera 6 - Vista Aérea (Drone)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERTAS -->
+        <div class="alerts-section" id="alerts">
+            <div class="section-title">🚨 Alertas em Tempo Real</div>
+            
+            <div class="alert-item critical">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Equipamento Parado por Tempo Excessivo</div>
+                    <div>Pá Carregadeira P1 parada há 35 minutos na zona de escavação - verificar operador</div>
+                    <div class="alert-time">Há 5 minutos</div>
+                </div>
+            </div>
+
+            <div class="alert-item warning">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Temperatura Elevada</div>
+                    <div>Temperatura ambiente atingiu 28°C - adequar horários de trabalho se necessário</div>
+                    <div class="alert-time">Há 12 minutos</div>
+                </div>
+            </div>
+
+            <div class="alert-item warning">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Baixa Produtividade</div>
+                    <div>Produtividade inferior a meta em 8% - revisar cronograma</div>
+                    <div class="alert-time">Há 23 minutos</div>
+                </div>
+            </div>
+
+            <div class="alert-item info">
+                <div class="alert-icon">ℹ️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Sincronização de Dados</div>
+                    <div>Upload de dados completado com sucesso - 2.3 GB processados e enviados para nuvem</div>
+                    <div class="alert-time">Há 1 hora</div>
+                </div>
+            </div>
+
+            <div class="alert-item info">
+                <div class="alert-icon">ℹ️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Novo Trabalhador Identificado</div>
+                    <div>Sistema detectou novo trabalhador no canteiro - adicionar ao registro se necessário</div>
+                    <div class="alert-time">Há 2 horas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECURSOS E INTEGRAÇÃO -->
+        <div class="card" style="margin: 2rem 0;">
+            <div class="section-title">🔧 Recursos do Sistema</div>
+            <div class="feature-list">
+                <div class="feature-item">Câmeras de Monitoramento 24/7</div>
+                <div class="feature-item">GPS em Tempo Real</div>
+                <div class="feature-item">Sensores Ambientais</div>
+                <div class="feature-item">Análise de IA Embarcada</div>
+                <div class="feature-item">Alertas Automáticos</div>
+                <div class="feature-item">Relatórios em Nuvem</div>
+                <div class="feature-item">Conectividade 4G/5G</div>
+                <div class="feature-item">Histórico de Atividades</div>
+                <div class="feature-item">Integração de Dados</div>
+                <div class="feature-item">Interface Intuitiva</div>
+                <div class="feature-item">Autonomia Estendida</div>
+                <div class="feature-item">Escalabilidade</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div class="section-title" style="color: white; justify-content: center;">
+            📊 Construscanner - Sistema Inteligente de Monitoramento
+        </div>
+        <p style="margin-top: 1rem; opacity: 0.8;">
+            Monitorando e otimizando canteiros de obras através de IA, sensorialmente e conectividade avançada.
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.6;">
+            © 2024 Equipe Construscanner | Engenharia & IA
+        </p>
+    </div>
+
+    <script>
+        // Simulação de dados em tempo real
+        function updateDashboard() {
+            // Produtividade varia entre 60-85%
+            const productivity = Math.floor(Math.random() * 25) + 60;
+            document.getElementById('productivity').textContent = productivity + '%';
+
+            // Máquinas variam entre 7-9 operando
+            const machines = Math.floor(Math.random() * 3) + 7;
+            document.getElementById('machines').textContent = machines;
+
+            // Trabalhadores variam entre 20-28
+            const workers = Math.floor(Math.random() * 9) + 20;
+            document.getElementById('workers').textContent = workers;
+
+            // Temperatura entre 25-32°C
+            const temp = Math.floor(Math.random() * 8) + 25;
+            document.getElementById('temperature').textContent = temp + '°C';
+
+            // Storage entre 80-90%
+            const storage = Math.floor(Math.random() * 11) + 80;
+            document.getElementById('storage').textContent = storage + '%';
+        }
+
+        // Atualizar dashboard a cada 5 segundos
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
+
+        // Efeito de animação ao carregar página
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Interatividade com marcadores de máquinas
+        document.querySelectorAll('.machine-marker').forEach(marker => {
+            marker.addEventListener('click', function() {
+                alert('Máquina: ' + this.title + '\n\nClique para mais detalhes');
+            });
+        });
+
+        // Scroll suave
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Log de inicialização
+        console.log('✅ Construscanner iniciado com sucesso!');
+        console.log('📡 Conectando ao sistema de monitoramento...');
+        console.log('🤖 IA de processamento ativa');
+        console.log('📊 Dashboard em tempo real carregado');
+    </script>
+</body>
+</html>
